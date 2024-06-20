@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "prozhito-recsys-streamlit"
+version = "0.1.0"
+description = "Prototype App for Prozhito RecSys"
+authors = ["Alexander Sevostianov <a.sevostyanov@eu.spb.ru>", "Nikolai Andreev <n.andreev@eu.spb.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+streamlit = "^1.35.0"
+duckdb = "^1.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.9"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
+
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by formatter
+]
+
+[tool.ruff.isort]
+order-by-type = true
+relative-imports-order = "closest-to-furthest"
+extra-standard-library = ["typing"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+known-first-party = []
