@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import duckdb
+from config import DUCKDB_CONFIG
 
 
 @dataclass(frozen=True)
@@ -19,9 +20,7 @@ class DiaryDB:
         if isinstance(self.db_location, Path) and (not self.db_location.exists() or not self.db_location.is_file()):
             raise FileNotFoundError(f"File not found at {self.db_location}")
 
-        self.conn = duckdb.connect(
-            str(self.db_location), read_only=True, config={"memory_limit": "384MB", "threads": 1}
-        )
+        self.conn = duckdb.connect(str(self.db_location), read_only=True, config=DUCKDB_CONFIG)
 
     def query_by_id(self, id: int) -> DiaryEntry:
         entry = self.conn.execute("SELECT id, person_id, text, tag FROM entries WHERE id = ?", [int(id)]).fetchone()
@@ -82,4 +81,4 @@ class DiaryDB:
 
         entries = self.conn.execute(query, [int(id), tags or [], int(n)]).fetchall()
 
-        return [DiaryEntry(*entry) for entry in entries] if entries else []
+        return [DiaryEntry(*entry) for entry in entries]
