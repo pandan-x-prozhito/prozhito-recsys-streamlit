@@ -1,4 +1,3 @@
-import gc
 from dataclasses import asdict
 
 import streamlit as st
@@ -62,7 +61,6 @@ def change_entry(entry: DiaryEntry):
     st.session_state.current_entry_id = entry.id
     get_entry.clear()
     get_similar.clear()
-    gc.collect()
 
 
 def main() -> None:
