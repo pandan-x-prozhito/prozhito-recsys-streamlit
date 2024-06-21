@@ -28,20 +28,6 @@ def get_entry(entry_id: DiaryEntry, /) -> dict:
 def get_similar(entry_id: DiaryEntry, /, tags: list[str], n: int = 3, allow_same_person: bool = True) -> list[dict]:
     return get_db().query_similar(entry_id, tags=tags, n=n, allow_same_person=allow_same_person)
 
-
-# --- Session state initialization ---
-
-TAGS = get_all_tags()
-
-if "current_entry_id" not in st.session_state:
-    st.session_state.current_entry_id = STARTING_ENTRY_ID
-
-if "current_author_id" not in st.session_state:
-    st.session_state.current_author_id = -1
-
-if "tag_filter" not in st.session_state:
-    st.session_state.tag_filter = []
-
 # --- Main app logic ---
 
 
@@ -64,7 +50,20 @@ def change_entry(entry: DiaryEntry):
 
 
 def main() -> None:
-    # Display the current diary entry
+    # --- Session state initialization ---
+
+    TAGS = get_all_tags()
+
+    if "current_entry_id" not in st.session_state:
+        st.session_state.current_entry_id = STARTING_ENTRY_ID
+
+    if "current_author_id" not in st.session_state:
+        st.session_state.current_author_id = -1
+
+    if "tag_filter" not in st.session_state:
+        st.session_state.tag_filter = []
+
+    # --- App Layout ---
     with st.spinner("Загрузка записи..."):
         current_entry = get_entry(st.session_state.current_entry_id)
         st.session_state.current_author_id = current_entry.person_id
