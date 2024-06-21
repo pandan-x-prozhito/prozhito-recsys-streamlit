@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import duckdb
-from config import DUCKDB_CONFIG
+
+from .config import DUCKDB_CONFIG
 
 
 @dataclass(frozen=True)

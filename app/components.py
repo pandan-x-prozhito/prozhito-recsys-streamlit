@@ -2,7 +2,7 @@ import re
 
 import streamlit as st
 
-from data import DiaryEntry
+from .data import DiaryEntry
 
 BR_RE = re.compile(r"<br\s*?/?>")
 TAG_RE = re.compile(r"<[^>]+>")

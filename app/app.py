@@ -1,10 +1,10 @@
 from dataclasses import asdict
 
 import streamlit as st
-from components import diary_card, diary_snippets
-from config import DB_LOCATION, STARTING_ENTRY_ID
 
-from data import DiaryDB, DiaryEntry
+from .components import diary_card, diary_snippets
+from .config import DB_LOCATION, STARTING_ENTRY_ID
+from .data import DiaryDB, DiaryEntry
 
 # --- Resource loading ---
 
