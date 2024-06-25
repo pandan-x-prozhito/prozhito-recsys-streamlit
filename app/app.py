@@ -1,13 +1,16 @@
-from dataclasses import asdict
 import random
+import uuid
+from dataclasses import asdict
 
 import streamlit as st
 
 from .components import diary_card, diary_snippets
 from .config import DB_LOCATION, STARTING_ENTRIES
 from .data import DiaryDB, DiaryEntry
+from .log import logger
 
 # --- Resource loading ---
+
 
 @st.cache_resource(max_entries=1, show_spinner="Загрузка базы данных...")
 def get_db() -> DiaryDB:
@@ -21,11 +24,13 @@ def get_all_tags() -> list[str]:
 
 @st.cache_data(max_entries=1, hash_funcs={DiaryEntry: asdict}, show_spinner="Загрузка записи...")
 def get_entry(entry_id: DiaryEntry, /) -> dict:
+    logger.info(f"Loading entry: {entry_id}")
     return get_db().query_by_id(entry_id)
 
 
 @st.cache_data(max_entries=1, hash_funcs={DiaryEntry: asdict}, show_spinner="Загрузка похожих записей...")
 def get_similar(entry_id: DiaryEntry, /, tags: list[str], n: int = 3, allow_same_person: bool = True) -> list[dict]:
+    logger.debug(f"Loading similar entries for: {entry_id}")
     return get_db().query_similar(entry_id, tags=tags, n=n, allow_same_person=allow_same_person)
 
 
@@ -54,9 +59,13 @@ def main() -> None:
     # --- Session state initialization ---
 
     TAGS = get_all_tags()
+    if "session_uuid" not in st.session_state:
+        st.session_state.session_uuid = uuid.uuid4()
+        logger.info(f"Starting session: {st.session_state.session_uuid.hex[:10]}")
 
     if "current_entry_id" not in st.session_state:
         st.session_state.current_entry_id = random.choice(STARTING_ENTRIES)
+        logger.info(f"Starting with entry: {st.session_state.current_entry_id}")
 
     if "current_author_id" not in st.session_state:
         st.session_state.current_author_id = -1
