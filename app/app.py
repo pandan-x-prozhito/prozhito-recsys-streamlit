@@ -1,13 +1,13 @@
 from dataclasses import asdict
+import random
 
 import streamlit as st
 
 from .components import diary_card, diary_snippets
-from .config import DB_LOCATION, STARTING_ENTRY_ID
+from .config import DB_LOCATION, STARTING_ENTRIES
 from .data import DiaryDB, DiaryEntry
 
 # --- Resource loading ---
-
 
 @st.cache_resource(max_entries=1, show_spinner="Загрузка базы данных...")
 def get_db() -> DiaryDB:
@@ -56,7 +56,7 @@ def main() -> None:
     TAGS = get_all_tags()
 
     if "current_entry_id" not in st.session_state:
-        st.session_state.current_entry_id = STARTING_ENTRY_ID
+        st.session_state.current_entry_id = random.choice(STARTING_ENTRIES)
 
     if "current_author_id" not in st.session_state:
         st.session_state.current_author_id = -1
