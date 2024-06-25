@@ -22,6 +22,8 @@ def diary_card(entry: DiaryEntry, /, tag_callback: callable) -> None:
     with st.container(border=True, height=300):
         st.markdown(entry.text, unsafe_allow_html=True)
 
+    st.page_link(f"https://corpus.prozhito.org/note/{entry.id}", label="Перейти к записи в корпусе «Прожито»", icon="📝")
+
     st.subheader("Теги", divider=True)
     tag_cols = st.columns(len(entry.tags))
 
