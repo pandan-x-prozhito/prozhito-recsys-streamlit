@@ -61,7 +61,7 @@ def main() -> None:
 
     try:
         TAGS = get_all_tags()
-    except DataError as e:
+    except (EntryNotFound, DataError) as e:
         logger.exception(e)
         st.error("Не удалось получить теги. Попробуйте перезагрузить страницу.")
         st.stop()
@@ -83,7 +83,7 @@ def main() -> None:
     try:
         current_entry = get_entry(st.session_state.current_entry_id)
         st.session_state.current_author_id = current_entry.person_id
-    except EntryNotFound as e:
+    except (EntryNotFound, DataError) as e:
         logger.exception(e)
         st.error("Не удалось получить запись. Попробуйте перезагрузить страницу")
         st.stop()
@@ -111,7 +111,7 @@ def main() -> None:
             n=5,
             allow_same_person=allow_same_person,
         )
-    except EntryNotFound as e:
+    except (EntryNotFound, DataError) as e:
         logger.exception(e)
         st.error("Не удалось получить похожие записи. Попробуйте перезагрузить страницу.")
         st.stop()

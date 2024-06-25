@@ -24,8 +24,19 @@ class DiaryDB:
 
         self.conn = duckdb.connect(str(self.db_location), read_only=True, config=DUCKDB_CONFIG)
 
+    def __del__(self) -> None:
+        self.conn.close()
+
+    def __reinit(self):
+        self.conn.close()
+        self.conn = duckdb.connect(str(self.db_location), read_only=True, config=DUCKDB_CONFIG)
+
     def query_by_id(self, id: int) -> DiaryEntry:
-        entry = self.conn.execute("SELECT id, person_id, text, tag FROM entries WHERE id = ?", [int(id)]).fetchone()
+        try:
+            entry = self.conn.execute("SELECT id, person_id, text, tag FROM entries WHERE id = ?", [int(id)]).fetchone()
+        except duckdb.InternalException as e:
+            self.__reinit()
+            raise DataError(f"An error occurred while querying the database: {e}") from e
 
         if not entry:
             raise EntryNotFound(f"Entry with ID {id} not found.")
@@ -33,10 +44,14 @@ class DiaryDB:
         return DiaryEntry(*entry)
 
     def query_all_tags(self) -> list[str]:
-        tags = self.conn.execute("SELECT DISTINCT unnest(tag) AS tag FROM entries ORDER BY tag;").fetchall()
+        try:
+            tags = self.conn.execute("SELECT DISTINCT unnest(tag) AS tag FROM entries ORDER BY tag;").fetchall()
+        except duckdb.InternalException as e:
+            self.__reinit()
+            raise DataError(f"An error occurred while querying the database: {e}") from e
 
         if not tags:
-            raise DataError("No tags found in the database.")
+            raise EntryNotFound("No tags found in the database.")
 
         return [tag[0] for tag in tags]
 
@@ -85,7 +100,11 @@ class DiaryDB:
 
         query += " ORDER BY array_cosine_similarity(t.vector, e.vector) DESC LIMIT ?;"
 
-        entries = self.conn.execute(query, [int(id), tags or [], int(n)]).fetchall()
+        try:
+            entries = self.conn.execute(query, [int(id), tags or [], int(n)]).fetchall()
+        except duckdb.InternalException as e:
+            self.__reinit()
+            raise DataError(f"An error occurred while querying the database: {e}") from e
 
         if not entries:
             raise EntryNotFound(f"No similar entries found for ID {id}.")
