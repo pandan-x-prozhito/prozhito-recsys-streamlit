@@ -9,24 +9,25 @@ from .data import DiaryDB, DiaryEntry
 # --- Resource loading ---
 
 
-@st.cache_resource(max_entries=1)
+@st.cache_resource(max_entries=1, show_spinner="Загрузка базы данных...")
 def get_db() -> DiaryDB:
     return DiaryDB(DB_LOCATION)
 
 
-@st.cache_data(max_entries=1)
+@st.cache_data(max_entries=1, show_spinner="Загрузка тегов...")
 def get_all_tags() -> list[str]:
     return get_db().query_all_tags()
 
 
-@st.cache_data(max_entries=1, hash_funcs={DiaryEntry: asdict})
+@st.cache_data(max_entries=1, hash_funcs={DiaryEntry: asdict}, show_spinner="Загрузка записи...")
 def get_entry(entry_id: DiaryEntry, /) -> dict:
     return get_db().query_by_id(entry_id)
 
 
-@st.cache_data(max_entries=1, hash_funcs={DiaryEntry: asdict})
+@st.cache_data(max_entries=1, hash_funcs={DiaryEntry: asdict}, show_spinner="Загрузка похожих записей...")
 def get_similar(entry_id: DiaryEntry, /, tags: list[str], n: int = 3, allow_same_person: bool = True) -> list[dict]:
     return get_db().query_similar(entry_id, tags=tags, n=n, allow_same_person=allow_same_person)
+
 
 # --- Main app logic ---
 
@@ -64,9 +65,8 @@ def main() -> None:
         st.session_state.tag_filter = []
 
     # --- App Layout ---
-    with st.spinner("Загрузка записи..."):
-        current_entry = get_entry(st.session_state.current_entry_id)
-        st.session_state.current_author_id = current_entry.person_id
+    current_entry = get_entry(st.session_state.current_entry_id)
+    st.session_state.current_author_id = current_entry.person_id
 
     diary_card(current_entry, tag_callback=add_tag)
 
@@ -84,13 +84,12 @@ def main() -> None:
         st.rerun()
 
     # Display snippets of related entries
-    with st.spinner("Загрузка похожих записей..."):
-        similar_entries = get_similar(
-            st.session_state.current_entry_id,
-            tags=st.session_state.tag_filter,
-            n=5,
-            allow_same_person=allow_same_person,
-        )
+    similar_entries = get_similar(
+        st.session_state.current_entry_id,
+        tags=st.session_state.tag_filter,
+        n=5,
+        allow_same_person=allow_same_person,
+    )
     diary_snippets(similar_entries, entry_callback=change_entry)
 
 
