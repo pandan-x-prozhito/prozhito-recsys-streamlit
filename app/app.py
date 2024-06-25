@@ -7,6 +7,7 @@ import streamlit as st
 from .components import diary_card, diary_snippets
 from .config import DB_LOCATION, STARTING_ENTRIES
 from .data import DiaryDB, DiaryEntry
+from .exceptions import DataError, EntryNotFound
 from .log import logger
 
 # --- Resource loading ---
@@ -58,7 +59,12 @@ def change_entry(entry: DiaryEntry):
 def main() -> None:
     # --- Session state initialization ---
 
-    TAGS = get_all_tags()
+    try:
+        TAGS = get_all_tags()
+    except DataError as e:
+        logger.exception(e)
+        st.error("Не удалось получить теги. Попробуйте перезагрузить страницу.")
+        st.stop()
     if "session_uuid" not in st.session_state:
         st.session_state.session_uuid = uuid.uuid4()
         logger.info(f"Starting session: {st.session_state.session_uuid.hex[:10]}")
@@ -74,8 +80,13 @@ def main() -> None:
         st.session_state.tag_filter = []
 
     # --- App Layout ---
-    current_entry = get_entry(st.session_state.current_entry_id)
-    st.session_state.current_author_id = current_entry.person_id
+    try:
+        current_entry = get_entry(st.session_state.current_entry_id)
+        st.session_state.current_author_id = current_entry.person_id
+    except EntryNotFound as e:
+        logger.exception(e)
+        st.error("Не удалось получить запись. Попробуйте перезагрузить страницу")
+        st.stop()
 
     diary_card(current_entry, tag_callback=add_tag)
 
@@ -93,12 +104,18 @@ def main() -> None:
         st.rerun()
 
     # Display snippets of related entries
-    similar_entries = get_similar(
-        st.session_state.current_entry_id,
-        tags=st.session_state.tag_filter,
-        n=5,
-        allow_same_person=allow_same_person,
-    )
+    try:
+        similar_entries = get_similar(
+            st.session_state.current_entry_id,
+            tags=st.session_state.tag_filter,
+            n=5,
+            allow_same_person=allow_same_person,
+        )
+    except EntryNotFound as e:
+        logger.exception(e)
+        st.error("Не удалось получить похожие записи. Попробуйте перезагрузить страницу.")
+        st.stop()
+
     diary_snippets(similar_entries, entry_callback=change_entry)
 
 

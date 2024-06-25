@@ -4,6 +4,7 @@ from pathlib import Path
 import duckdb
 
 from .config import DUCKDB_CONFIG
+from .exceptions import DataError, EntryNotFound
 
 
 @dataclass(frozen=True)
@@ -27,12 +28,16 @@ class DiaryDB:
         entry = self.conn.execute("SELECT id, person_id, text, tag FROM entries WHERE id = ?", [int(id)]).fetchone()
 
         if not entry:
-            raise ValueError(f"Entry with ID {id} not found.")
+            raise EntryNotFound(f"Entry with ID {id} not found.")
 
         return DiaryEntry(*entry)
 
     def query_all_tags(self) -> list[str]:
         tags = self.conn.execute("SELECT DISTINCT unnest(tag) AS tag FROM entries ORDER BY tag;").fetchall()
+
+        if not tags:
+            raise DataError("No tags found in the database.")
+
         return [tag[0] for tag in tags]
 
     def query_similar(
@@ -81,5 +86,8 @@ class DiaryDB:
         query += " ORDER BY array_cosine_similarity(t.vector, e.vector) DESC LIMIT ?;"
 
         entries = self.conn.execute(query, [int(id), tags or [], int(n)]).fetchall()
+
+        if not entries:
+            raise EntryNotFound(f"No similar entries found for ID {id}.")
 
         return [DiaryEntry(*entry) for entry in entries]
