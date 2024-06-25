@@ -1,16 +1,10 @@
+import argparse
 import os
 import sys
 import urllib.request
 
-data_path = os.getenv("DATA_PATH")
-data_download_url = os.getenv("DATA_DOWNLOAD_URL")
 
-if not data_path:
-    print("DATA_PATH is not set")
-    sys.exit(1)
-
-
-def download_with_progress(url, path):
+def download_with_progress(url: str, path: str) -> str:
     response = urllib.request.urlopen(url)
     total = int(response.info().get("Content-Length").strip())
     block_size = 1024
@@ -30,22 +24,40 @@ def download_with_progress(url, path):
                 sys.stdout.flush()
                 progress_threshold += 0.05
     if total != 0 and wrote != total:
-        print(f"\nERROR: Downloaded file size ({wrote}) does not match expected size ({total})")
-        sys.exit(1)
-    else:
-        print("\nDownload completed.")
+        raise ValueError(f"ERROR: Downloaded file size ({wrote}) does not match expected size ({total})")
+
+    return path
 
 
-if not os.path.isfile(data_path):
+def main():
+    parser = argparse.ArgumentParser(description="Download a file with progress.")
+    parser.add_argument("--data-path", required=True, help="Path to save the downloaded file")
+    parser.add_argument("--data-download-url", required=True, help="URL to download the file from")
+
+    args = parser.parse_args()
+
+    data_path = args.data_path
+    data_download_url = args.data_download_url
+
+    if os.path.isfile(data_path):
+        print("File already exists.")
+        sys.exit(0)
+
     if not data_download_url:
-        print("DATA_DOWNLOAD_URL is not set")
+        print("data-download-url is not set")
         sys.exit(1)
-    print("File not found. Downloading from DATA_DOWNLOAD_URL...")
+
+    print("File not found. Downloading from data-download-url...")
     os.makedirs(os.path.dirname(data_path), exist_ok=True)
+
     try:
         download_with_progress(data_download_url, data_path)
     except Exception as e:
         print(f"Download failed: {e}")
         sys.exit(1)
-else:
-    print("File already exists.")
+    finally:
+        print("Download finished.")
+
+
+if __name__ == "__main__":
+    main()
