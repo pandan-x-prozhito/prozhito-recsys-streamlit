@@ -37,12 +37,9 @@ class DiaryDB:
         with pyzipper.AESZipFile(self.db_location, "r") as zip_ref:
             fname = zip_ref.namelist()[0]
             new_location = self.db_location.parent / fname
-            if new_location.exists() and new_location.is_file():
-                return
-
-            zip_ref.extract(fname, self.db_location.parent, pwd=password.encode() if password else None)
-
-        logger.info(f"Extracted {fname} from {self.db_location}")
+            if not (new_location.exists() and new_location.is_file()):
+                zip_ref.extract(fname, self.db_location.parent, pwd=password.encode() if password else None)
+                logger.info(f"Extracted {fname} from {self.db_location}")
 
         self.db_location = new_location
 
