@@ -17,18 +17,18 @@ def get_db() -> DiaryDB:
     return DiaryDB(DB_LOCATION)
 
 
-@st.cache_data(max_entries=1, show_spinner="Загрузка тегов...")
+@st.cache_resource(max_entries=10, show_spinner="Загрузка тегов...")
 def get_all_tags() -> list[str]:
     return get_db().query_all_tags()
 
 
-@st.cache_data(max_entries=1, hash_funcs={DiaryEntry: asdict}, show_spinner="Загрузка записи...")
+@st.cache_resource(max_entries=10, show_spinner="Загрузка записи...")
 def get_entry(entry_id: DiaryEntry, /) -> dict:
     logger.info(f"Loading entry: {entry_id}")
     return get_db().query_by_id(entry_id)
 
 
-@st.cache_data(max_entries=1, hash_funcs={DiaryEntry: asdict}, show_spinner="Загрузка похожих записей...")
+@st.cache_resource(max_entries=10, show_spinner="Загрузка похожих записей...")
 def get_similar(entry_id: DiaryEntry, /, tags: list[str], n: int = 3, allow_same_person: bool = True) -> list[dict]:
     logger.debug(f"Loading similar entries for: {entry_id}")
     return get_db().query_similar(entry_id, tags=tags, n=n, allow_same_person=allow_same_person)
@@ -46,13 +46,10 @@ def add_tag(tag: str | None):
 
 def update_tag_filter(tags: list[str]):
     st.session_state.tag_filter = tags
-    get_similar.clear()
 
 
 def change_entry(entry: DiaryEntry):
     st.session_state.current_entry_id = entry.id
-    get_entry.clear()
-    get_similar.clear()
 
 
 def main() -> None:
@@ -100,7 +97,6 @@ def main() -> None:
 
     if selected_tags != st.session_state.tag_filter:
         st.session_state.tag_filter = selected_tags
-        get_similar.clear()
         st.rerun()
 
     # Display snippets of related entries
