@@ -40,9 +40,9 @@ COPY --from=builder --chown=user /app/.venv ./.venv
 COPY --chown=user . .
 
 # download data if it was not copied
-ARG DATA_PATH="data/diaries_vec.db"
+ARG DATA_PATH="data/diaries_vec.db.zip"
 RUN --mount=type=secret,id=data_download_url,uid=1000 \
-    python check_and_download_data.py --data-path=$DATA_PATH --data-download-url=$(cat /run/secrets/data_download_url)
+    python builder/check_and_download_data.py --data-path=$DATA_PATH --data-download-url=$(cat /run/secrets/data_download_url)
 
 EXPOSE 8501
 HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health

@@ -190,3 +190,4 @@ pyrightconfig.json
 *.db
 *.tmp
 .secrets/
+data/

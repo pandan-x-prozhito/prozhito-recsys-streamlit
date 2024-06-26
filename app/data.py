@@ -2,9 +2,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import duckdb
+import pyzipper
 
 from .config import DUCKDB_CONFIG
 from .exceptions import DataError, EntryNotFound
+from .log import logger
 
 
 @dataclass(frozen=True)
@@ -16,20 +18,44 @@ class DiaryEntry:
 
 
 class DiaryDB:
-    def __init__(self, db_location=str | Path) -> None:
+    def __init__(self, db_location=str | Path, zip_password: str | None = None) -> None:
         self.db_location = Path(db_location) if db_location != ":memory:" else db_location
 
         if isinstance(self.db_location, Path) and (not self.db_location.exists() or not self.db_location.is_file()):
             raise FileNotFoundError(f"File not found at {self.db_location}")
 
+        if self.db_location.suffix == ".zip":
+            self.__unzip(zip_password)
+
         self.conn = duckdb.connect(str(self.db_location), read_only=True, config=DUCKDB_CONFIG)
+        logger.info(f"Connected to database at {self.db_location}")
+
+    def __unzip(self, password: str | None) -> None:
+        if not pyzipper.is_zipfile(self.db_location):
+            raise ValueError("File is not a zip archive.")
+
+        with pyzipper.AESZipFile(self.db_location, "r") as zip_ref:
+            fname = zip_ref.namelist()[0]
+            new_location = self.db_location.parent / fname
+            if new_location.exists() and new_location.is_file():
+                return
+
+            zip_ref.extract(fname, self.db_location.parent, pwd=password.encode() if password else None)
+
+        logger.info(f"Extracted {fname} from {self.db_location}")
+
+        self.db_location = new_location
 
     def __del__(self) -> None:
-        self.conn.close()
+        if hasattr(self, "conn") and self.conn:
+            self.conn.close()
+            logger.info("Disconnected from database.")
 
     def __reinit(self):
-        self.conn.close()
+        if hasattr(self, "conn") and self.conn:
+            self.conn.close()
         self.conn = duckdb.connect(str(self.db_location), read_only=True, config=DUCKDB_CONFIG)
+        logger.info(f"Reconnected to database at {self.db_location}")
 
     def query_by_id(self, id: int) -> DiaryEntry:
         try:

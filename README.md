@@ -34,6 +34,11 @@ docker build --secret id=data_download_url,src=".secrets/data-download-url"  . -
 docker run -p 8501:8501 prozhito-streamlit
 ```
 
+Если база данных лежит в зашифрованном архиве (файл должен заканчиваться на `.zip`), то необходимо передать переменную окружения с паролем для расшифровки:
+```bash
+docker run -p 8501:8501 -e DB_ZIP_PASSWORD=YOUR_PASSWORD prozhito-streamlit
+```
+
 ### Poetry
 
 Установите [Poetry](https://python-poetry.org/docs/).

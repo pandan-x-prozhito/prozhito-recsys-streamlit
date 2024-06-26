@@ -4,7 +4,7 @@ import uuid
 import streamlit as st
 
 from .components import diary_card, diary_snippets, local_css
-from .config import DB_LOCATION, STARTING_ENTRIES
+from .config import DB_LOCATION, DB_ZIP_PASSWORD, STARTING_ENTRIES
 from .data import DiaryDB, DiaryEntry
 from .exceptions import DataError, EntryNotFound
 from .log import logger
@@ -14,7 +14,7 @@ from .log import logger
 
 @st.cache_resource(max_entries=1, show_spinner="Загрузка базы данных...")
 def get_db() -> DiaryDB:
-    return DiaryDB(DB_LOCATION)
+    return DiaryDB(DB_LOCATION, zip_password=DB_ZIP_PASSWORD)
 
 
 @st.cache_resource(max_entries=10, show_spinner="Загрузка тегов...")
