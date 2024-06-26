@@ -53,7 +53,10 @@ def change_entry(entry: DiaryEntry):
 
 
 def main() -> None:
+    # --- Streamlit setup ---
+    st.set_page_config(page_title="Прототип поиска похожих документов «Прожито»", page_icon=":memo:")
     local_css("static/styles.css")
+
     # --- Session state initialization ---
 
     try:
