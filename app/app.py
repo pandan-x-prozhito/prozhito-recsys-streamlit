@@ -1,10 +1,9 @@
 import random
 import uuid
-from dataclasses import asdict
 
 import streamlit as st
 
-from .components import diary_card, diary_snippets
+from .components import diary_card, diary_snippets, local_css
 from .config import DB_LOCATION, STARTING_ENTRIES
 from .data import DiaryDB, DiaryEntry
 from .exceptions import DataError, EntryNotFound
@@ -57,6 +56,7 @@ def change_entry(entry: DiaryEntry):
 
 
 def main() -> None:
+    local_css("static/styles.css")
     # --- Session state initialization ---
 
     try:

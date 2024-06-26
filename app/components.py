@@ -22,10 +22,10 @@ def diary_card(entry: DiaryEntry, /, tag_callback: callable) -> None:
     with st.container(border=True, height=300):
         st.markdown(entry.text, unsafe_allow_html=True)
 
-    st.page_link(f"https://corpus.prozhito.org/note/{entry.id}", label="Перейти к записи в корпусе «Прожито»", icon="📝")
+    st.page_link(f"https://corpus.prozhito.org/note/{entry.id}", label="Перейти к записи в «Прожито»", icon=":material/newspaper:")
 
     st.subheader("Теги", divider=True)
-    tag_cols = st.columns(len(entry.tags))
+    tag_cols = st.columns(len(entry.tags), vertical_alignment="center")
 
     for tag, col in zip(entry.tags, tag_cols):
         with col:
@@ -43,7 +43,7 @@ def diary_snippets(entries: list[DiaryEntry], /, entry_callback: callable) -> No
         return
     for entry in entries:
         with st.container(border=True):
-            col_text, col_button = st.columns([0.75, 0.25])
+            col_text, col_button = st.columns([0.81, 0.19], vertical_alignment="center")
 
         text: str = clean_entry_text(entry.text)
         text = text[:80] + "..." if len(text) > 80 else text
@@ -59,5 +59,9 @@ def diary_snippets(entries: list[DiaryEntry], /, entry_callback: callable) -> No
                 "Перейти",
                 key=f"entry_button_{entry.id}",
                 help="Показать эту запись",
-                on_click=lambda e=entry: entry_callback(e),
+                on_click=lambda e=entry: entry_callback(e)
             )
+
+def local_css(file_name: str) -> None:
+    with open(file_name) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
