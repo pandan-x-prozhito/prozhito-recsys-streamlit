@@ -10,3 +10,8 @@ h2,
 h3 {
     font-family: "Literata", Georgia, serif !important;
 }
+
+/* Remove Top Padding */
+#root>div:nth-child(1)>div>div>div>div>section>div {
+    padding-top: 3rem;
+}
