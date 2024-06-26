@@ -23,6 +23,6 @@ STARTING_ENTRIES: list[int] = [
     725211,
     739503,
     764570,
-    786819,
+    # 786819, # seems to be broken
 ]
-DUCKDB_CONFIG: dict[str, Any] = {"memory_limit": "384MB", "threads": 1}
+DUCKDB_CONFIG: dict[str, Any] = {"memory_limit": "1GB", "threads": 3}
