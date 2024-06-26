@@ -23,13 +23,13 @@ def get_all_tags() -> list[str]:
 
 
 @st.cache_resource(max_entries=10, show_spinner="Загрузка записи...")
-def get_entry(entry_id: DiaryEntry, /) -> dict:
+def get_entry(entry_id: DiaryEntry, /) -> DiaryEntry:
     logger.info(f"Loading entry: {entry_id}")
     return get_db().query_by_id(entry_id)
 
 
 @st.cache_resource(max_entries=10, show_spinner="Загрузка похожих записей...")
-def get_similar(entry_id: DiaryEntry, /, tags: list[str], n: int = 3, allow_same_person: bool = True) -> list[dict]:
+def get_similar(entry_id: DiaryEntry, /, tags: list[str], n: int = 3, allow_same_person: bool = True) -> list[DiaryEntry]:
     logger.debug(f"Loading similar entries for: {entry_id}")
     return get_db().query_similar(entry_id, tags=tags, n=n, allow_same_person=allow_same_person)
 

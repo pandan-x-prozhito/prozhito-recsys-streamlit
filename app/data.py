@@ -11,6 +11,15 @@ from .log import logger
 
 @dataclass(frozen=True)
 class DiaryEntry:
+    """
+    Represents a diary entry.
+
+    Attributes:
+        id (int): The unique identifier of the diary entry.
+        person_id (int): The identifier of the person who wrote the diary entry.
+        text (str): The text content of the diary entry.
+        tags (list[str]): The list of tags associated with the diary entry.
+    """
     id: int
     person_id: int
     text: str
@@ -18,7 +27,17 @@ class DiaryEntry:
 
 
 class DiaryDB:
-    def __init__(self, db_location=str | Path, zip_password: str | None = None) -> None:
+    def __init__(self, db_location: str | Path, zip_password: str | None = None) -> None:
+        """
+        Initializes the Data class.
+
+        Args:
+            db_location (str | Path): The location of the database file or ":memory:" for an in-memory database.
+            zip_password (str | None, optional): The password for the zip file, if the database is stored in a zip file. Defaults to None.
+
+        Raises:
+            FileNotFoundError: If the database file is not found at the specified location.
+        """
         self.db_location = Path(db_location) if db_location != ":memory:" else db_location
 
         if isinstance(self.db_location, Path) and (not self.db_location.exists() or not self.db_location.is_file()):
@@ -55,6 +74,19 @@ class DiaryDB:
         logger.info(f"Reconnected to database at {self.db_location}")
 
     def query_by_id(self, id: int) -> DiaryEntry:
+        """Query a diary entry by its ID.
+
+        Args:
+            id (int): The ID of the diary entry to query.
+
+        Raises:
+            DataError: If an error occurs while querying the database.
+            EntryNotFound: If the entry with the specified ID is not found.
+
+        Returns:
+            DiaryEntry: The queried diary entry.
+
+        """
         try:
             entry = self.conn.execute("SELECT id, person_id, text, tag FROM entries WHERE id = ?", [int(id)]).fetchone()
         except duckdb.InternalException as e:
@@ -67,6 +99,18 @@ class DiaryDB:
         return DiaryEntry(*entry)
 
     def query_all_tags(self) -> list[str]:
+        """Get all tags from the database.
+
+        This method queries the database to retrieve all distinct tags from the 'entries' table.
+        The tags are returned as a list of strings.
+
+        Raises:
+            DataError: If an error occurs while querying the database.
+            EntryNotFound: If no tags are found in the database.
+
+        Returns:
+            list[str]: A list of all tags from the database.
+        """
         try:
             tags = self.conn.execute("SELECT DISTINCT unnest(tag) AS tag FROM entries ORDER BY tag;").fetchall()
         except duckdb.InternalException as e:
@@ -94,8 +138,12 @@ class DiaryDB:
             tags (list | None, optional): Tags to filter by. Defaults to None.
             allow_same_person (bool, optional): Wether to include entries by the same author as target's. Defaults to True.
 
+        Raises:
+            DataError: If an error occurs while querying the database.
+            EntryNotFound: If no similar entries are found.
+
         Returns:
-            pd.DataFrame: Similar entries
+            list[DiaryEntry]: Similar entries
         """
         if n < 1:
             ValueError("N must be greater than 0.")

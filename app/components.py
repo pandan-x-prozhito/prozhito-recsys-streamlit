@@ -9,7 +9,16 @@ TAG_RE = re.compile(r"<[^>]+>")
 SPACES_RE = re.compile(r"\s+")
 
 
-def clean_entry_text(text):
+def clean_entry_text(text: str) -> str:
+    """
+    Cleans the given text by removing line breaks, HTML tags, and extra spaces.
+
+    Args:
+        text (str): The text to be cleaned.
+
+    Returns:
+        str: The cleaned text.
+    """
     text = BR_RE.sub("\n", text)
     text = TAG_RE.sub("", text)
     text = SPACES_RE.sub(" ", text)
@@ -17,12 +26,26 @@ def clean_entry_text(text):
 
 
 def diary_card(entry: DiaryEntry, /, tag_callback: callable) -> None:
+    """
+    Renders a diary card component with the given diary entry.
+
+    Parameters:
+        entry (DiaryEntry): The diary entry to display.
+        tag_callback (callable): A callback function to handle tag button clicks.
+
+    Returns:
+        None
+    """
     st.header("Дневниковая запись")
 
     with st.container(border=True, height=300):
         st.markdown(entry.text, unsafe_allow_html=True)
 
-    st.page_link(f"https://corpus.prozhito.org/note/{entry.id}", label="Перейти к записи в «Прожито»", icon=":material/newspaper:")
+    st.page_link(
+        f"https://corpus.prozhito.org/note/{entry.id}",
+        label="Перейти к записи в «Прожито»",
+        icon=":material/newspaper:",
+    )
 
     st.subheader("Теги", divider=True)
     tag_cols = st.columns(len(entry.tags), vertical_alignment="center")
@@ -38,6 +61,16 @@ def diary_card(entry: DiaryEntry, /, tag_callback: callable) -> None:
 
 
 def diary_snippets(entries: list[DiaryEntry], /, entry_callback: callable) -> None:
+    """
+    Display snippets of diary entries and provide a button to view the full entry.
+
+    Args:
+        entries (list[DiaryEntry]): A list of diary entries.
+        entry_callback (callable): A callback function to handle the selected entry.
+
+    Returns:
+        None
+    """
     if not entries:
         st.warning("Похожих записей не найдено.")
         return
@@ -59,9 +92,19 @@ def diary_snippets(entries: list[DiaryEntry], /, entry_callback: callable) -> No
                 "Перейти",
                 key=f"entry_button_{entry.id}",
                 help="Показать эту запись",
-                on_click=lambda e=entry: entry_callback(e)
+                on_click=lambda e=entry: entry_callback(e),
             )
 
+
 def local_css(file_name: str) -> None:
+    """
+    Applies local CSS styles to a Streamlit app.
+
+    Parameters:
+        file_name (str): The path to the CSS file.
+
+    Returns:
+        None
+    """
     with open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
