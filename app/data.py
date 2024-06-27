@@ -38,15 +38,16 @@ class DiaryDB:
         Raises:
             FileNotFoundError: If the database file is not found at the specified location.
         """
-        self.db_location = Path(db_location) if db_location != ":memory:" else db_location
+        in_memory = db_location == ":memory:"
+        self.db_location = Path(db_location) if not in_memory else db_location
 
         if isinstance(self.db_location, Path) and (not self.db_location.exists() or not self.db_location.is_file()):
             raise FileNotFoundError(f"File not found at {self.db_location}")
 
-        if self.db_location.suffix == ".zip":
+        if not in_memory and self.db_location.suffix == ".zip":
             self.__unzip(zip_password)
 
-        self.conn = duckdb.connect(str(self.db_location), read_only=True, config=DUCKDB_CONFIG)
+        self.conn = duckdb.connect(str(self.db_location), read_only=(not in_memory), config=DUCKDB_CONFIG)
         logger.info(f"Connected to database at {self.db_location}")
 
     def __unzip(self, password: str | None) -> None:
